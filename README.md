@@ -1,0 +1,177 @@
+# Naver Blog Skills
+
+네이버 리뷰 블로그 글을 **조사 → 원고 → 게시 준비** 순서로 도와주는 한국어 Agent Skills 모음입니다. Claude Code와 Codex에서 사용할 수 있습니다.
+
+> **한눈에 보기**
+>
+> 1. 스킬 폴더 3개를 `~/.claude/skills/`(Codex는 `~/.agents/skills/`)에 복사합니다.
+> 2. 내 작업 폴더에 사진과 방문 메모를 넣고 `/naver-blog-writer 이 메모랑 사진으로 리뷰 써줘`라고 요청합니다.
+> 3. 완성된 원고와 가림 처리된 사진을 받아 **직접** 네이버 편집기에 올리고 발행합니다.
+>
+> 실제로 겪지 않은 경험은 쓰지 않고, 사진 속 개인정보는 사본에서 가리며, 네이버에 자동으로 발행하지 않습니다.
+
+## 어떤 스킬을 쓰나요?
+
+| 이럴 때 | 스킬 | 받는 결과물 |
+| --- | --- | --- |
+| 어떤 키워드로, 어떤 내용을 써야 할지 모르겠다 | `naver-blog-strategist` | 키워드 후보, 독자 질문, 제목 3개, 글쓰기용 전달 메모 |
+| 이미 쓴 글의 조회수를 보고 개선하고 싶다 | `naver-blog-strategist` | 성과 보고서, 수정 제안, 다음 측정일 |
+| 메모와 사진으로 원고를 받고 싶다 | `naver-blog-writer` | 게시용 본문, 편집 구성안, 사진 배치표, 가림 처리된 사진 |
+| 원고를 네이버에 올릴 준비를 하고 싶다 | `naver-blog-publisher` | 발행 설정표, 올리는 순서 안내, 게시 후 확인 |
+
+세 스킬은 각각 따로 써도 되고 순서대로 이어서 써도 됩니다. `publisher`는 안전을 위해 **직접 호출할 때만** 실행됩니다.
+
+## 1. 설치 (5분)
+
+이 저장소에서 스킬 폴더 3개만 복사합니다. 저장소 전체를 하나의 스킬처럼 복사하면 안 됩니다.
+
+**Windows (PowerShell)**
+
+```powershell
+New-Item -ItemType Directory -Force "$HOME\.claude\skills" | Out-Null
+Copy-Item -Recurse -Force naver-blog-strategist, naver-blog-writer, naver-blog-publisher "$HOME\.claude\skills\"
+```
+
+**macOS / Linux**
+
+```bash
+mkdir -p ~/.claude/skills
+cp -R naver-blog-strategist naver-blog-writer naver-blog-publisher ~/.claude/skills/
+```
+
+| 도구 | 개인 설치(모든 프로젝트) | 프로젝트 설치(이 폴더만) | 호출 |
+| --- | --- | --- | --- |
+| Claude Code | `~/.claude/skills/` | `.claude/skills/` | `/naver-blog-writer` |
+| Codex | `~/.agents/skills/` | `.agents/skills/` | `$naver-blog-writer` |
+
+Codex를 쓴다면 위 명령의 `.claude`를 `.agents`로 바꾸세요. 설치한 뒤에는 **새 세션을 열고** 스킬 목록에 3개가 보이는지 확인합니다(Claude Code는 `/`를 입력하면 목록이 보이고, Codex는 `/skills`). 공식 안내: [Claude Code](https://code.claude.com/docs/en/skills) · [Codex](https://learn.chatgpt.com/docs/build-skills)
+
+## 2. 처음 한 번 해 둘 세팅
+
+### 꼭 필요한 것
+
+- [ ] **작업 폴더 만들기**: 원고와 사진은 스킬 폴더가 아니라 별도 작업 폴더에 둡니다. 아래 구조를 만들고 **이 폴더에서** Claude Code나 Codex를 실행하세요.
+
+  ```text
+  내-블로그-작업/
+  ├─ photos/     ← 원본 사진(스킬이 덮어쓰거나 지우지 않음)
+  ├─ data/       ← 통계·키워드 CSV 등 받은 자료
+  ├─ reports/    ← 전략·성과 보고서
+  ├─ drafts/     ← 원고
+  └─ outputs/    ← 게시 작업표, redacted/(가림 처리된 사진 사본)
+  ```
+
+- [ ] **이 작업 폴더를 git으로 관리한다면** 저장소의 [.gitignore](.gitignore)를 작업 폴더에도 복사합니다. 이미 커밋된 파일은 `.gitignore`로 숨겨지지 않습니다.
+- [ ] **아이폰 사진(HEIC)은 JPG로 변환**: 에이전트가 HEIC 파일을 열어 내용을 확인하지 못할 수 있습니다. 사진 설정에서 "호환성 우선"을 고르거나 미리 JPG로 바꿔 두세요.
+- [ ] **네이버 블로그 카테고리를 미리 만들기**: 스킬은 카테고리를 새로 만들지 않고, 이미 있는 이름을 고르도록 안내만 합니다.
+
+### 있으면 좋은 것
+
+| 기능 | 준비할 것 | 없으면 |
+| --- | --- | --- |
+| 사진 속 얼굴·번호 가림, 위치정보(EXIF) 제거 | Python + Pillow (`pip install pillow`), 선택으로 [ExifTool](https://exiftool.org/) | 가릴 위치만 알려주고, 해당 사진은 "확인 필요"로 두어 게시 목록에서 뺍니다 |
+| 웹 조사(공식 문서, 검색 화면) | 에이전트의 웹 검색·웹 읽기 도구 허용 | 직접 준 자료와 캡처 화면만 분석합니다 |
+| 검색어 추이(데이터랩) | [네이버 개발자센터](https://developers.naver.com/)에서 애플리케이션 등록 후 환경 변수 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 설정 | 수요를 "미확인"으로 표시합니다 |
+| 월간 검색수 | 네이버 검색광고 계정의 키워드 도구에서 CSV를 내려받아 `data/`에 넣기 | 수요를 "미확인"으로 표시합니다 |
+| 성과 분석 | 블로그 관리 → 통계 화면 캡처 또는 내보낸 파일을 `data/`에 넣기 | 분석할 수 없습니다 |
+| 문체 맞추기 | 닮고 싶은 블로그 글 URL 1~5개 | 기본 문체(차분하고 친근한 해요체)로 씁니다 |
+
+환경 변수 설정 예시 (API 키는 채팅에 붙여넣지 마세요):
+
+```powershell
+# Windows: 한 번 설정한 뒤 터미널을 다시 열어야 적용됩니다
+setx NAVER_CLIENT_ID "발급받은-ID"
+setx NAVER_CLIENT_SECRET "발급받은-Secret"
+```
+
+```bash
+# macOS / Linux: ~/.zshrc 또는 ~/.bashrc에 추가
+export NAVER_CLIENT_ID="발급받은-ID"
+export NAVER_CLIENT_SECRET="발급받은-Secret"
+```
+
+## 3. 이렇게 요청하세요
+
+Claude Code 기준입니다. Codex는 `/` 대신 `$`를 붙입니다.
+
+**처음부터 끝까지**
+
+```text
+/naver-blog-strategist 연남동 작업 카페 리뷰를 쓰려고 해. 메모는 data/visit.txt야.
+/naver-blog-writer 위 전략이랑 photos/ 사진으로 원고 써줘. 이모지 없이 해요체로.
+/naver-blog-publisher drafts/ 최신 원고로 게시 준비해줘. 공개 범위는 전체공개.
+```
+
+**원고만 빠르게**
+
+```text
+/naver-blog-writer 어제 간 국밥집 후기. 2인 2만 4천 원, 대기 20분, 국물이 좀 짰음. 사진은 photos/gukbap/ 폴더.
+```
+
+**협찬 글**
+
+```text
+/naver-blog-writer ○○카페에서 음료 2잔을 무상 제공받았어. 원고료는 없음. 사진은 photos/cafe/.
+```
+
+**기존 글 개선**
+
+```text
+/naver-blog-strategist data/stats.csv 보고 지난달 글 중에 뭘 고치면 좋을지 알려줘.
+```
+
+**말투 맞추기**
+
+```text
+/naver-blog-writer 이 글들 말투 분석해서 그대로 맞춰줘: (참고 URL 1~3개)
+```
+
+> 💡 방문일, 가격, 협찬 여부, 직접 결제했는지를 처음부터 알려주면 질문을 덜 받습니다.
+
+## 4. 결과물 읽는 법
+
+**원고 상태**
+
+| 표시 | 의미 | 할 일 |
+| --- | --- | --- |
+| 초안 | 구성은 잡혔지만 다듬는 중 | 피드백 주기 |
+| 확인 필요 | 가격, 사진 가림, 협찬 정보 등 확인할 것이 남음 | "게시 전 확인" 목록 해결 |
+| 게시 준비 완료 | 올려도 되는 상태(아직 게시된 것은 아님) | publisher 호출 또는 직접 게시 |
+
+**사진 검수 상태**: `가림 불필요·검수 완료`와 `가림 완료·검수 완료` 사진만 올립니다. `확인 필요`와 `제외` 사진은 올리지 않습니다.
+
+**편집 구성안의 `[블록:B02 | 사진:P03,P04 | 콜라주]`**: 네이버 편집기에서 이 위치에 사진 P03, P04를 콜라주로 넣으라는 표시입니다. 공개 본문에는 들어가지 않습니다.
+
+**게시 결과**: `로컬 임시저장 준비 완료`는 내 컴퓨터에 자료만 준비됐다는 뜻이고, 네이버에 저장된 것은 아닙니다.
+
+## 5. 자주 묻는 질문
+
+**Q. 왜 자동으로 발행하지 않나요?**
+네이버 이용약관은 사전 허락 없이 자동으로 로그인하거나 글을 올리는 것을 제한합니다. 계정이 제재받지 않도록 기본 동작은 "자료 준비 + 사람이 직접 발행"입니다. 예약 발행은 네이버 편집기의 예약 기능을 쓰도록 안내합니다.
+
+**Q. "상위 노출되는 법"도 알려주나요?**
+검색 순위를 보장하거나 사진 수, 글자 수 같은 공식을 만들어내지 않습니다. 실제 데이터와 검색 화면을 근거로 독자가 궁금해할 질문에 답하는 글을 설계합니다.
+
+**Q. 원본 사진이 바뀌나요?**
+아니요. 가림 처리는 `outputs/redacted/`에 만드는 사본에만 적용됩니다.
+
+**Q. 안 가본 곳 후기도 써 주나요?**
+아니요. 경험이 없으면 정보형 글 구성을 제안하거나 필요한 정보를 질문합니다.
+
+## 지키는 원칙
+
+- 경험, 맛, 가격, 검색량, 성과를 지어내지 않습니다. 직접 결제한 것이 확인되지 않으면 `내돈내산`으로 표시하지 않습니다.
+- 협찬을 받았다면 제공한 곳과 받은 대가를 제목이나 본문 첫 부분에 텍스트로 밝힙니다.
+- 병원·시술, 건강식품, 화장품, 부정적 리뷰는 관련 법규를 기준으로 표현을 검수합니다(법률 자문은 아님).
+- 임시저장도 외부로 보내는 것이므로, 올리기 전에 개인정보와 업로드 범위를 확인합니다.
+- 비밀번호, 쿠키, API 키는 어떤 파일에도 기록하지 않습니다.
+
+## 저장소 구조와 검증 범위
+
+```text
+naver-blog-strategist/  SKILL.md, references/(출처·키워드·분류·성과), templates/, tests/
+naver-blog-writer/      SKILL.md, references/(문체·사진·에디터·협찬·개인정보), templates/, examples/, tests/
+naver-blog-publisher/   SKILL.md, references/, templates/, tests/, agents/openai.yaml(Codex 호출 제한)
+```
+
+각 스킬의 `tests/cases.md`는 직접 점검할 때 쓰는 가상 시나리오이며, 실제 실행 결과가 아닙니다. 실제 네이버 계정에서의 게시와 이미지 가림 도구 동작은 연동 테스트를 하지 않았습니다. 스킬은 에이전트용 지침이며 별도 프로그램을 설치하지 않습니다.

@@ -1,0 +1,21 @@
+# 인증 정보
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+secrets*.json
+# 개인 블로그 자료 및 생성 결과
+private/
+data/
+photos/
+drafts/
+reports/
+outputs/
+# 로컬 도구 파일
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+Thumbs.db
