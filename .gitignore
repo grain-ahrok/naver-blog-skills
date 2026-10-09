@@ -7,6 +7,8 @@
 credentials*.json
 secrets*.json
 # 개인 블로그 자료 및 생성 결과
+# 스킬 저장소에서는 실수로 이 폴더에서 작업했을 때의 안전망,
+# 작업 폴더에서는 이 파일을 복사해 쓰는 기본 규칙이다.
 private/
 data/
 photos/

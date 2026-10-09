@@ -6,7 +6,7 @@
 >
 > 1. 스킬 폴더 3개를 `~/.claude/skills/`(Codex는 `~/.agents/skills/`)에 복사합니다.
 > 2. 내 작업 폴더에 사진과 방문 메모를 넣고 `/naver-blog-writer 이 메모랑 사진으로 리뷰 써줘`라고 요청합니다.
-> 3. 완성된 원고와 가림 처리된 사진을 받아 **직접** 네이버 편집기에 올리고 발행합니다.
+> 3. `/naver-blog-publisher`가 만든 단계별 체크리스트를 따라 **직접** 네이버 편집기에 올리고 발행합니다.
 >
 > 실제로 겪지 않은 경험은 쓰지 않고, 사진 속 개인정보는 사본에서 가리며, 네이버에 자동으로 발행하지 않습니다.
 
@@ -17,27 +17,27 @@
 | 어떤 키워드로, 어떤 내용을 써야 할지 모르겠다 | `naver-blog-strategist` | 키워드 후보, 독자 질문, 제목 3개, 글쓰기용 전달 메모 |
 | 이미 쓴 글의 조회수를 보고 개선하고 싶다 | `naver-blog-strategist` | 성과 보고서, 수정 제안, 다음 측정일 |
 | 메모와 사진으로 원고를 받고 싶다 | `naver-blog-writer` | 게시용 본문, 편집 구성안, 사진 배치표, 가림 처리된 사진 |
-| 원고를 네이버에 올릴 준비를 하고 싶다 | `naver-blog-publisher` | 발행 설정표, 올리는 순서 안내, 게시 후 확인 |
+| 원고를 네이버에 올릴 준비를 하고 싶다 | `naver-blog-publisher` | 따라 하기만 하면 되는 단계별 게시 체크리스트, 복사용 본문, 발행 설정표 |
 
 세 스킬은 각각 따로 써도 되고 순서대로 이어서 써도 됩니다. `publisher`는 안전을 위해 **직접 호출할 때만** 실행됩니다.
 
-## 1. 설치 (5분)
+## 1. 설치 (명령 한 줄)
 
-이 저장소에서 스킬 폴더 3개만 복사합니다. 저장소 전체를 하나의 스킬처럼 복사하면 안 됩니다.
+이 저장소 폴더에서 터미널을 열고 아래 한 줄을 붙여넣으세요. 스킬 폴더 3개만 복사됩니다.
 
 **Windows (PowerShell)**
 
 ```powershell
-New-Item -ItemType Directory -Force "$HOME\.claude\skills" | Out-Null
-Copy-Item -Recurse -Force naver-blog-strategist, naver-blog-writer, naver-blog-publisher "$HOME\.claude\skills\"
+mkdir -Force "$HOME\.claude\skills" > $null; cp -r -Force naver-blog-* "$HOME\.claude\skills\"
 ```
 
 **macOS / Linux**
 
 ```bash
-mkdir -p ~/.claude/skills
-cp -R naver-blog-strategist naver-blog-writer naver-blog-publisher ~/.claude/skills/
+mkdir -p ~/.claude/skills && cp -R naver-blog-* ~/.claude/skills/
 ```
+
+> 터미널이 익숙하지 않다면 이 폴더에서 Claude Code를 열고 **"이 폴더의 naver-blog 스킬 3개를 개인 스킬로 설치해줘"** 라고 요청해도 됩니다.
 
 | 도구 | 개인 설치(모든 프로젝트) | 프로젝트 설치(이 폴더만) | 호출 |
 | --- | --- | --- | --- |
@@ -141,6 +141,8 @@ Claude Code 기준입니다. Codex는 `/` 대신 `$`를 붙입니다.
 **사진 검수 상태**: `가림 불필요·검수 완료`와 `가림 완료·검수 완료` 사진만 올립니다. `확인 필요`와 `제외` 사진은 올리지 않습니다.
 
 **편집 구성안의 `[블록:B02 | 사진:P03,P04 | 콜라주]`**: 네이버 편집기에서 이 위치에 사진 P03, P04를 콜라주로 넣으라는 표시입니다. 공개 본문에는 들어가지 않습니다.
+
+**게시 체크리스트**: publisher는 `outputs/<작업ID>-manual-guide.md`와 복사용 본문 `outputs/<작업ID>-body.txt`를 만듭니다. 체크리스트를 위에서부터 따라 하며 본문을 붙여넣고 사진을 올린 뒤, 끝나면 "발행했어, 주소는 …"처럼 결과를 알려주세요.
 
 **게시 결과**: `로컬 임시저장 준비 완료`는 내 컴퓨터에 자료만 준비됐다는 뜻이고, 네이버에 저장된 것은 아닙니다.
 
