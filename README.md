@@ -1,10 +1,10 @@
 # Naver Blog Skills
 
-네이버 리뷰 블로그 글을 **조사 → 원고 → 게시** 순서로 도와주는 한국어 Agent Skills 모음입니다. Claude Code와 Codex에서 사용할 수 있습니다.
+네이버 일상·리뷰 블로그를 **디자인·정리 → 조사 → 원고 → 게시** 순서로 도와주는 한국어 Agent Skills 모음입니다. Claude Code와 Codex에서 사용할 수 있습니다.
 
 > **한눈에 보기**
 >
-> 1. 스킬 폴더 3개를 `~/.claude/skills/`(Codex는 `~/.agents/skills/`)에 복사합니다.
+> 1. 스킬 폴더 4개를 `~/.claude/skills/`(Codex는 `~/.agents/skills/`)에 복사합니다.
 > 2. 내 작업 폴더에 사진과 방문 메모를 넣고 `/naver-blog-writer 이 메모랑 사진으로 리뷰 써줘`라고 요청합니다.
 > 3. `/naver-blog-publisher`에 대상 블로그와 목표(임시저장·발행)를 알려줍니다. 브라우저를 사용할 수 있으면 직접 게시 작업을 진행하고 필요한 조건만 확인받습니다.
 >
@@ -14,16 +14,17 @@
 
 | 이럴 때 | 스킬 | 받는 결과물 |
 | --- | --- | --- |
+| 배경·홈·카테고리와 기존 글 분류를 정리하고 싶다 | `naver-blog-organizer` | 사례 비교, 디자인 규칙, 카테고리안, 글 이동안과 관리 기준 |
 | 어떤 키워드로, 어떤 내용을 써야 할지 모르겠다 | `naver-blog-strategist` | 키워드 후보, 독자 질문, 제목 3개, 글쓰기용 전달 메모 |
 | 이미 쓴 글의 조회수를 보고 개선하고 싶다 | `naver-blog-strategist` | 성과 보고서, 수정 제안, 다음 측정일 |
 | 메모와 사진으로 원고를 받고 싶다 | `naver-blog-writer` | 게시용 본문, 편집 구성안, 사진 배치표, 최소 가림 계획·검수 결과 |
 | 원고를 네이버에 저장하거나 게시하고 싶다 | `naver-blog-publisher` | 브라우저에서 직접 입력·첨부·저장·게시 및 결과 검증, 필요 시 수동 안내 |
 
-세 스킬은 각각 따로 써도 되고 순서대로 이어서 써도 됩니다. `publisher`는 안전을 위해 **직접 호출할 때만** 실행됩니다.
+네 스킬은 각각 따로 써도 되고 순서대로 이어서 써도 됩니다. `publisher`는 안전을 위해 **직접 호출할 때만** 실행됩니다.
 
 ## 1. 설치 (명령 한 줄)
 
-이 저장소 폴더에서 터미널을 열고 아래 한 줄을 붙여넣으세요. 스킬 폴더 3개만 복사됩니다.
+이 저장소 폴더에서 터미널을 열고 아래 한 줄을 붙여넣으세요. 스킬 폴더 4개만 복사됩니다.
 
 **Windows (PowerShell)**
 
@@ -37,14 +38,14 @@ mkdir -Force "$HOME\.claude\skills" > $null; cp -r -Force naver-blog-* "$HOME\.c
 mkdir -p ~/.claude/skills && cp -R naver-blog-* ~/.claude/skills/
 ```
 
-> 터미널이 익숙하지 않다면 이 폴더에서 Claude Code를 열고 **"이 폴더의 naver-blog 스킬 3개를 개인 스킬로 설치해줘"** 라고 요청해도 됩니다.
+> 터미널이 익숙하지 않다면 이 폴더에서 Claude Code를 열고 **"이 폴더의 naver-blog 스킬 4개를 개인 스킬로 설치해줘"** 라고 요청해도 됩니다.
 
 | 도구 | 개인 설치(모든 프로젝트) | 프로젝트 설치(이 폴더만) | 호출 |
 | --- | --- | --- | --- |
 | Claude Code | `~/.claude/skills/` | `.claude/skills/` | `/naver-blog-writer` |
 | Codex | `~/.agents/skills/` | `.agents/skills/` | `$naver-blog-writer` |
 
-Codex를 쓴다면 위 명령의 `.claude`를 `.agents`로 바꾸세요. 설치한 뒤에는 **새 세션을 열고** 스킬 목록에 3개가 보이는지 확인합니다(Claude Code는 `/`를 입력하면 목록이 보이고, Codex는 `/skills`). 공식 안내: [Claude Code](https://code.claude.com/docs/en/skills) · [Codex](https://learn.chatgpt.com/docs/build-skills)
+Codex를 쓴다면 위 명령의 `.claude`를 `.agents`로 바꾸세요. 설치한 뒤에는 **새 세션을 열고** 스킬 목록에 4개가 보이는지 확인합니다(Claude Code는 `/`를 입력하면 목록이 보이고, Codex는 `/skills`). 공식 안내: [Claude Code](https://code.claude.com/docs/en/skills) · [Codex](https://learn.chatgpt.com/docs/build-skills)
 
 ## 2. 처음 한 번 해 둘 세팅
 
@@ -63,7 +64,7 @@ Codex를 쓴다면 위 명령의 `.claude`를 `.agents`로 바꾸세요. 설치�
 
 - [ ] **이 작업 폴더를 git으로 관리한다면** 저장소의 [.gitignore](.gitignore)를 작업 폴더에도 복사합니다. 이미 커밋된 파일은 `.gitignore`로 숨겨지지 않습니다.
 - [ ] **아이폰 사진(HEIC)은 JPG로 변환**: 에이전트가 HEIC 파일을 열어 내용을 확인하지 못할 수 있습니다. 사진 설정에서 "호환성 우선"을 고르거나 미리 JPG로 바꿔 두세요.
-- [ ] **네이버 블로그 카테고리를 미리 만들기**: 스킬은 카테고리를 새로 만들지 않고, 이미 있는 이름을 고르도록 안내만 합니다.
+- [ ] **네이버 블로그 카테고리 정하기**: `naver-blog-organizer`로 구조를 설계하고 네이버에서 적용합니다. 계정 변경은 적용 요청 범위에서 진행하며, 게시 스킬은 준비된 카테고리를 선택합니다.
 
 ### 있으면 좋은 것
 
@@ -180,6 +181,7 @@ Claude Code 기준입니다. Codex는 `/` 대신 `$`를 붙입니다.
 ## 저장소 구조와 검증 범위
 
 ```text
+naver-blog-organizer/   SKILL.md, references/(디자인·분류·사례), agents/openai.yaml
 naver-blog-strategist/  SKILL.md, references/(출처·키워드·분류·성과), templates/, tests/
 naver-blog-writer/      SKILL.md, references/(문체·사진·에디터·협찬·개인정보), templates/, examples/, tests/
 naver-blog-publisher/   SKILL.md, references/, templates/, tests/, agents/openai.yaml(Codex 호출 제한)
